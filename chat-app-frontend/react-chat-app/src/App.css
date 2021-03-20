@@ -1,3 +1,17 @@
 .App {
-  text-align: center;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  width: 100vw;
+  height: 100vh;
+  margin: 0px auto;
+  background-color: #bdbdbd;
+}
+
+.chat_box {
+  height: 200px;
+  width: 200px;
+  margin: 10px;
+  background-color: grey;
+  border: 2px solid black;
 }
