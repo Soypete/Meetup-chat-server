@@ -2,15 +2,19 @@
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
   width: 100vw;
   height: 100vh;
   margin: 0px auto;
   background-color: #bdbdbd;
 }
 
-.chat_box {
-  height: 200px;
-  width: 200px;
+.chat_box_main {
+  display: flex;
+  flex-direction: column;
+  height: 75%;
+  width: 50%;
   margin: 10px;
   background-color: grey;
   border: 2px solid black;
