@@ -32,8 +32,14 @@
   justify-content: space-around;
   width: 25%;
   height: 50%;
-  border: 2px solid black;
   border-radius: 20px;
   box-shadow: 10px 5px 5px grey;
   background-color: hotpink;
+}
+
+.login_form_fields {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 50%;
 }
