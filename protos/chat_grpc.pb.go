@@ -40,21 +40,19 @@ func (c *gatewayConnectorClient) SendChat(ctx context.Context, in *ChatMessage, 
 }
 
 // GatewayConnectorServer is the server API for GatewayConnector service.
-// All implementations must embed UnimplementedGatewayConnectorServer
+// All implementations should embed UnimplementedGatewayConnectorServer
 // for forward compatibility
 type GatewayConnectorServer interface {
 	SendChat(context.Context, *ChatMessage) (*emptypb.Empty, error)
-	mustEmbedUnimplementedGatewayConnectorServer()
 }
 
-// UnimplementedGatewayConnectorServer must be embedded to have forward compatible implementations.
+// UnimplementedGatewayConnectorServer should be embedded to have forward compatible implementations.
 type UnimplementedGatewayConnectorServer struct {
 }
 
 func (UnimplementedGatewayConnectorServer) SendChat(context.Context, *ChatMessage) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendChat not implemented")
 }
-func (UnimplementedGatewayConnectorServer) mustEmbedUnimplementedGatewayConnectorServer() {}
 
 // UnsafeGatewayConnectorServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to GatewayConnectorServer will
@@ -98,5 +96,5 @@ var GatewayConnector_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "protos/chat.proto",
+	Metadata: "chat.proto",
 }
