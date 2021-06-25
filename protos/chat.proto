@@ -1,0 +1,18 @@
+syntax = "proto3";
+package chat; 
+
+option go_package = "github.com/Soypete/Meetup-chat-server/protos/chat";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+
+service GatewayConnector{
+rpc SendChat (ChatMessage) returns (google.protobuf.Empty) {}
+}
+
+message ChatMessage {
+string user_name = 1;
+google.protobuf.Timestamp timestamp = 2;
+string text = 3;
+}
