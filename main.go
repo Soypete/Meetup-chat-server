@@ -66,5 +66,6 @@ func main() {
 
 func (c *ChatServer) SendChat(ctx context.Context, msg *chat.ChatMessage) (*emptypb.Empty, error) {
 	// TODO: return recieved message
-	return nil, nil
+	fmt.Println(msg.GetText())
+	return new(emptypb.Empty), nil
 }
