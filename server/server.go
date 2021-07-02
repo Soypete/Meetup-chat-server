@@ -16,13 +16,17 @@ import (
 // ChatServer is the struct upon which the grpc methods are implemented.
 type ChatServer struct {
 	chat.UnimplementedGatewayConnectorServer
-	gwServer *http.Server
+	GWServer *http.Server
 }
 
-// Setup created the grpc server for the chat messages.
-func Setup(ctx context.Context) *ChatServer {
+// SetupGrpc created the grpc server for the chat messages.
+func SetupGrpc() *ChatServer {
 	cs := ChatServer{}
+	return &cs
+}
 
+// SetupGateway creates the Rest server via grpc connection/
+func (cs *ChatServer) SetupGateway(ctx context.Context) error {
 	conn, err := grpc.DialContext(
 		ctx,
 		"localhost:9090",
@@ -30,34 +34,30 @@ func Setup(ctx context.Context) *ChatServer {
 		grpc.WithInsecure(),
 	)
 	if err != nil {
-		fmt.Println(errors.Wrap(err, "failed to setup grpc client connection: %w"))
-		return nil
-	}
-	fmt.Println("setup grpc connection")
-	gwmux := runtime.NewServeMux()
-	// Register Greeter
-	err = chat.RegisterGatewayConnectorHandler(ctx, gwmux, conn)
-	if err != nil {
-		fmt.Println(errors.Wrap(err, "failed to register gateway: %w"))
-		return nil
+		return errors.Wrap(err, "failed to setup grpc client connection: %w")
 	}
 
-	fmt.Println("setup gwmux server connection")
-	gwServer := &http.Server{
+	gwmux := runtime.NewServeMux()
+	// Register Greeter
+	if err = chat.RegisterGatewayConnectorHandler(ctx, gwmux, conn); err != nil {
+		return errors.Wrap(err, "failed to register gateway: %w")
+	}
+
+	cs.GWServer = &http.Server{
 		Addr:    ":8090",
 		Handler: gwmux,
 	}
-	cs.gwServer = gwServer
-	return &cs
+
+	return nil
 }
 
-// Run administer the server used to handle chat messages.
-func (cs *ChatServer) Run(ctx context.Context) error {
+// RunGrpc administer the server used to handle chat messages.
+func (cs *ChatServer) RunGrpc(ctx context.Context) error {
 	lis, err := net.Listen("tcp", "localhost:9090")
 	if err != nil {
-		fmt.Println(errors.Wrap(err, "cannot setup tcp connection: %w"))
-		return nil
+		return errors.Wrap(err, "cannot setup tcp connection: %w")
 	}
+
 	grpcServer := grpc.NewServer()
 	chat.RegisterGatewayConnectorServer(grpcServer, cs)
 
@@ -68,13 +68,6 @@ func (cs *ChatServer) Run(ctx context.Context) error {
 		}
 		return nil
 	}()
-	fmt.Println("grpc server listening")
-
-	fmt.Println("Serving gRPC-Gateway on http://localhost:8090")
-	err = cs.gwServer.ListenAndServe()
-	if err != nil {
-		return errors.Wrap(err, "server died: %w")
-	}
 	return nil
 }
 

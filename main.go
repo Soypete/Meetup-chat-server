@@ -4,20 +4,28 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	server "github.com/soypete/meetup-chat-server/server"
 )
 
 func main() {
-	ctx := context.Background()
-	chatServer := server.Setup(ctx)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	chatServer := server.SetupGrpc()
 
-	fmt.Println("server is configured")
-	// TODO: clean shutdown with channel listener
+	fmt.Println("server is configured", chatServer)
 
-	err := chatServer.Run(ctx)
+	// TODO: clean shutdown - read about this
+
+	err := chatServer.RunGrpc(ctx)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	chatServer.SetupGateway(ctx)
 
+	err = chatServer.GWServer.ListenAndServe()
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
