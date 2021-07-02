@@ -6,10 +6,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/soypete/meetup-chat-server/postgres"
 	server "github.com/soypete/meetup-chat-server/server"
 )
 
 func main() {
+	postgres.ConnectDB()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	chatServer := server.SetupGrpc()
