@@ -10,14 +10,30 @@ import "google/api/annotations.proto";
 service GatewayConnector{
 	rpc SendChat (ChatMessage) returns (google.protobuf.Empty) {
     	option (google.api.http) = {
-			post: "/test/sendChat"
+			post: "/chat/postmessage"
 			body: "*"	
 		};
 	}
+	rpc GetChat(RetrieveChatMessages) returns (Chats){
+
+    	option (google.api.http) = {
+			post: "/chat/getmessages"
+			body: "*"	
+		};
+}
 }
 
+message RetrieveChatMessages{
+google.protobuf.Timestamp timestamp_last_message = 1;
+}
+
+message Chats{
+	repeated ChatMessage messages = 1;
+}
 message ChatMessage {
 	string user_name = 1;
 	google.protobuf.Timestamp timestamp = 2;
 	string text = 3;
 }
+
+
