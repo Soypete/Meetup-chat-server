@@ -1,0 +1,83 @@
+package client
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"math/rand"
+	"testing"
+	"time"
+
+	"github.com/soypete/meetup-chat-server/postgres"
+	chat "github.com/soypete/meetup-chat-server/protos"
+	"google.golang.org/grpc"
+)
+
+var (
+	client *grpc.Client
+	db     postgres.PG
+	ctx    context.Context
+)
+
+func TestClientPublishGRPC(t *testing.T) {
+	for i := 0; i <= rand.Intn(20); i++ {
+		// generate random sentences
+		sentence := getText()
+		// make grpc call
+		msg := chat.ChatMessage{
+			UserName: "tester",
+			Text:     sentence,
+			source:   chat.DEFAULT,
+		}
+		// response body is empty
+
+		_, err := client.SendChat(ctx, &msg)
+		fmt.Println(err)
+
+		// check err
+	}
+}
+
+func TestGRPCEndpoints(t *testing.T) {
+	rand.Seed(time.Now().Unix())
+	ctx = context.Background()
+	// setup test database
+	db = postgres.ConnectDB()
+	err := db.Migrate()
+	if err != nil {
+		t.Failln(err)
+	}
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	conn, err = grpc.Dial("localhost:9090", opts...)
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+	client := chat.NewGatewayConnectorClient(conn)
+	// setup grpc client
+
+	// post to server via grpc
+	// post to server via http
+
+	// validate database
+
+	// post db failure
+	// test error
+
+	// Getlist of chats from DB with grpc
+	// GetList of chats from DB with http
+
+	// fail to ge tests.
+}
+
+func getText() string {
+	answers := []string{
+		"Follow soypete01 on twitch",
+		"Check out my meetups",
+		"Follow Me on Twitter",
+		"Do you want to see more of my dogs?",
+		"Say hi in chat",
+		"Do you want me to work on the cloud technologies",
+	}
+	return answers[rand.Intn(len(answers))]
+}

@@ -96,5 +96,5 @@ func (c *ChatServer) GetChat(ctx context.Context, request *chat.RetrieveChatMess
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to retrieve caht messages")
 	}
-	return &chat.Chats{messages: msgList}, nil
+	return &chat.Chats{Messages: msgList}, nil
 }

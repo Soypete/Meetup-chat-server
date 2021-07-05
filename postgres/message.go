@@ -31,8 +31,8 @@ func (pg *PG) InsertMessage(ctx context.Context, msg *chat.ChatMessage) error {
 // SelectMessages retrieves all the messages that have been stored in the database since
 // the last message was recieved. The messages are pulled from the database based on the
 // messageID. The message ID is of the postgres serial type and increments sequentially.
-func (pg *PG) SelectMessages(lastMessageID int) ([]chat.ChatMessage, error) {
-	var msgList []chat.ChatMessage
+func (pg *PG) SelectMessages(lastMessageID int32) ([]*chat.ChatMessage, error) {
+	var msgList []*chat.ChatMessage
 	// TODO: add deleted at functionality
 	// TODO: add banned functionality
 	query := `SELECT user_name, message_body, source, created_at 
@@ -48,7 +48,7 @@ func (pg *PG) SelectMessages(lastMessageID int) ([]chat.ChatMessage, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse messages query result")
 		}
-		msgList = append(msgList, msg)
+		msgList = append(msgList, &msg)
 	}
 	return msgList, nil
 }
