@@ -11,16 +11,16 @@ import (
 )
 
 func main() {
-	postgres.ConnectDB()
+	db := postgres.ConnectDB()
+	err := db.Migrate()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	chatServer := server.SetupGrpc()
+	chatServer := server.SetupGrpc(db)
 
 	fmt.Println("server is configured", chatServer)
 
 	// TODO: clean shutdown - read about this
-
-	err := chatServer.RunGrpc(ctx)
+	err = chatServer.RunGrpc(ctx)
 	if err != nil {
 		log.Fatalln(err)
 	}

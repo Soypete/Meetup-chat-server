@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	"fmt"
 	"log"
 
 	_ "github.com/lib/pq"
@@ -9,13 +8,20 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func ConnectDB() {
+type PG struct {
+	Client *sqlx.DB
+}
+
+func ConnectDB() PG {
 	db, err := sqlx.Connect("postgres", "user=postgres password=postgres sslmode=disable")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	err = db.Ping()
 	// exec the schema or fail; multi-statement Exec behavior varies between
 	// database drivers;  pq will exec them all, sqlite3 won't, ymmv
-	fmt.Println(db.Ping())
+	return PG{
+		Client: db,
+	}
 }

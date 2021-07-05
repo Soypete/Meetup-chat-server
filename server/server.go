@@ -8,6 +8,7 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pkg/errors"
+	"github.com/soypete/meetup-chat-server/postgres"
 	chat "github.com/soypete/meetup-chat-server/protos"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -17,11 +18,14 @@ import (
 type ChatServer struct {
 	chat.UnimplementedGatewayConnectorServer
 	GWServer *http.Server
+	database postgres.PG
 }
 
 // SetupGrpc created the grpc server for the chat messages.
-func SetupGrpc() *ChatServer {
-	cs := ChatServer{}
+func SetupGrpc(db postgres.PG) *ChatServer {
+	cs := ChatServer{
+		database: db,
+	}
 	return &cs
 }
 
@@ -72,7 +76,15 @@ func (cs *ChatServer) RunGrpc(ctx context.Context) error {
 }
 
 func (c *ChatServer) SendChat(ctx context.Context, msg *chat.ChatMessage) (*emptypb.Empty, error) {
-	// TODO: return recieved message
 	fmt.Println(msg.GetText())
+	err := c.database.InsertMessage(ctx, msg)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to insert message to DB")
+	}
+	// TODO: add user to db
 	return new(emptypb.Empty), nil
+}
+
+func (c *ChatServer) GetChat(ctx context.Context, request *chat.RetrieveChatMessages) (*chat.Chats, error) {
+	return nil, errors.New("not implemented")
 }
