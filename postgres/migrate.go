@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"github.com/pkg/errors"
 	"github.com/pressly/goose"
 )
 
@@ -11,6 +12,10 @@ const (
 
 func (pg *PG) Migrate() error {
 	goose.SetTableName(migrationTable)
-	goose.Up(pg.Client.DB, migrationPath)
+	err := goose.Up(pg.Client.DB, migrationPath)
+	if err != nil {
+		return errors.Wrap(err, "failed migration")
+	}
+
 	return nil
 }

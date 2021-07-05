@@ -18,9 +18,6 @@ func ConnectDB() PG {
 		log.Fatalln(err)
 	}
 
-	err = db.Ping()
-	// exec the schema or fail; multi-statement Exec behavior varies between
-	// database drivers;  pq will exec them all, sqlite3 won't, ymmv
 	return PG{
 		Client: db,
 	}

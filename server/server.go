@@ -75,6 +75,8 @@ func (cs *ChatServer) RunGrpc(ctx context.Context) error {
 	return nil
 }
 
+// SendChat is called by the client to send a chat message to the server. The message is then
+// stored in the database.
 func (c *ChatServer) SendChat(ctx context.Context, msg *chat.ChatMessage) (*emptypb.Empty, error) {
 	fmt.Println(msg.GetText())
 	err := c.database.InsertMessage(ctx, msg)
@@ -85,6 +87,25 @@ func (c *ChatServer) SendChat(ctx context.Context, msg *chat.ChatMessage) (*empt
 	return new(emptypb.Empty), nil
 }
 
+// GetChat is used by a client to retrieve messages that the sever has collected. The client supplies the last
+// messageID that the recieved and the server returns all the messages send after that last ID. It's are sequential
+// so it just has to return when the messageID is larger than the last MessageID.
 func (c *ChatServer) GetChat(ctx context.Context, request *chat.RetrieveChatMessages) (*chat.Chats, error) {
-	return nil, errors.New("not implemented")
+	var msgList chat.Chats
+	fmt.Println(request)
+	// TODO: add deleted at functionality
+	// TODO: add banned functionality
+	query := `SELECT user_name, message_body, source, created_at 
+			  FROM chat_message
+			  WHERE id > $1`
+	rows, err := c.database.Client.Queryx(query, request.MessageID)
+	for rows.Next {
+		var msg chat.Chat
+		err = rows.Scan(&msg.UserName, &msg.Text, &msg.Source, &msg.Timestamp)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse messages query result")
+		}
+		msgList = append(msgList, msg)
+	}
+	return &msgList, nil
 }
