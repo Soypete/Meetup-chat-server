@@ -91,21 +91,10 @@ func (c *ChatServer) SendChat(ctx context.Context, msg *chat.ChatMessage) (*empt
 // messageID that the recieved and the server returns all the messages send after that last ID. It's are sequential
 // so it just has to return when the messageID is larger than the last MessageID.
 func (c *ChatServer) GetChat(ctx context.Context, request *chat.RetrieveChatMessages) (*chat.Chats, error) {
-	var msgList chat.Chats
 	fmt.Println(request)
-	// TODO: add deleted at functionality
-	// TODO: add banned functionality
-	query := `SELECT user_name, message_body, source, created_at 
-			  FROM chat_message
-			  WHERE id > $1`
-	rows, err := c.database.Client.Queryx(query, request.MessageID)
-	for rows.Next {
-		var msg chat.Chat
-		err = rows.Scan(&msg.UserName, &msg.Text, &msg.Source, &msg.Timestamp)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to parse messages query result")
-		}
-		msgList = append(msgList, msg)
+	msgList, err := c.database.SelectMessages(request.GetLastMessageId())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to retrieve caht messages")
 	}
-	return &msgList, nil
+	return &chat.Chats{messages: msgList}, nil
 }

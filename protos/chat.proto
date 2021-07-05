@@ -36,6 +36,13 @@ message ChatMessage {
 	google.protobuf.Timestamp timestamp = 2;
 	string text = 3;
 	int32 message_id = 4;
+	Source source = 5;
 }
 
+enum Source {
+	DEFAULT = 0;
+	ENDPOINT = 1;
+	TWITCH = 2;
+	DISCORD = 3;
+}
 
