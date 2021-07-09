@@ -3,6 +3,7 @@ module github.com/soypete/meetup-chat-server
 go 1.16
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/jmoiron/sqlx v1.3.4

@@ -78,7 +78,6 @@ func (cs *ChatServer) RunGrpc(ctx context.Context) error {
 // SendChat is called by the client to send a chat message to the server. The message is then
 // stored in the database.
 func (c *ChatServer) SendChat(ctx context.Context, msg *chat.ChatMessage) (*emptypb.Empty, error) {
-	fmt.Println(msg.GetText())
 	err := c.database.InsertMessage(ctx, msg)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to insert message to DB")
