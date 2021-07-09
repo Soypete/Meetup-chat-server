@@ -46,7 +46,7 @@ package client
 // if err != nil {
 // return nil, postgres.PG{}, ctx, errors.Wrap(err, "test setup failed to setup grpcserver")
 // }
-Configure Gateway Server
+// Configure Gateway Server
 // chatServer.SetupGateway(ctx)
 // err = chatServer.GWServer.ListenAndServe()
 // if err != nil {
