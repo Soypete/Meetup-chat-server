@@ -1,7 +1,7 @@
 #bin/bash
 
 #run unit test
-TEST_INTEGRATION= go test ./... -v
+go test ./... -v
 
 #run integration test
 docker compose up -d
