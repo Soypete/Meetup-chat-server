@@ -30,10 +30,10 @@ func SetupGrpc(db postgres.PG) *ChatServer {
 }
 
 // SetupGateway creates the Rest server via grpc connection/
-func (cs *ChatServer) SetupGateway(ctx context.Context) error {
+func (cs *ChatServer) SetupGateway(ctx context.Context, port string, grpcPort string) error {
 	conn, err := grpc.DialContext(
 		ctx,
-		"localhost:9090",
+		"localhost:"+grpcPort,
 		grpc.WithBlock(),
 		grpc.WithInsecure(),
 	)
@@ -48,7 +48,7 @@ func (cs *ChatServer) SetupGateway(ctx context.Context) error {
 	}
 
 	cs.GWServer = &http.Server{
-		Addr:    ":8090",
+		Addr:    "localhost:" + port,
 		Handler: gwmux,
 	}
 
@@ -56,8 +56,8 @@ func (cs *ChatServer) SetupGateway(ctx context.Context) error {
 }
 
 // RunGrpc administer the server used to handle chat messages.
-func (cs *ChatServer) RunGrpc(ctx context.Context) error {
-	lis, err := net.Listen("tcp", "localhost:9090")
+func (cs *ChatServer) RunGrpc(ctx context.Context, port string) error {
+	lis, err := net.Listen("tcp", "localhost:"+port)
 	if err != nil {
 		return errors.Wrap(err, "cannot setup tcp connection: %w")
 	}

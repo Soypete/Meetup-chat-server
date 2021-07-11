@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -60,22 +61,14 @@ func setupContextAndConnection(t *testing.T) (context.Context, *grpc.ClientConn)
 	return ctx, conn
 }
 
-// TestServer executes TableTestFunctions
-func TestServer(t *testing.T) {
-	// t.Run("test-grpc-client", testClientPublishGRPC)
-	// post to server via http
-	t.Run("test-http-client", testClientPublishHTTP)
-
-}
-
-func testClientPublishGRPC(t *testing.T) {
+func TestClientPublishGRPC(t *testing.T) {
 	// setup db mock
 	pgClient, mock := setupTestDB(t)
 	ctx, conn := setupContextAndConnection(t)
 
 	// configure grpcServer
 	chatServer := SetupGrpc(pgClient)
-	err := chatServer.RunGrpc(ctx)
+	err := chatServer.RunGrpc(ctx, "9090")
 	if err != nil {
 		t.Error(err)
 	}
@@ -104,22 +97,24 @@ func testClientPublishGRPC(t *testing.T) {
 
 }
 
-func testClientPublishHTTP(t *testing.T) {
+func TestClientPublishHTTP(t *testing.T) {
 	// setup db mock
 	pgClient, mock := setupTestDB(t)
 
 	ctx, _ := setupContextAndConnection(t)
+
 	// configure grpcServer
 	chatServer := SetupGrpc(pgClient)
-	err := chatServer.RunGrpc(ctx)
+	err := chatServer.RunGrpc(ctx, "9091")
 	if err != nil {
-		t.Error(err)
+		// this is setup step
+		t.Fatalf("cannot setup grpc %v", err)
 	}
 
 	// Configure Gateway Server
-	chatServer.SetupGateway(ctx)
+	chatServer.SetupGateway(ctx, "8091", "9091")
 	go chatServer.GWServer.ListenAndServe()
-	fmt.Println("GatewayServer is configured and running on port :8090")
+	fmt.Println("GatewayServer is configured and running on port :8091")
 
 	// generate random sentence
 	sentence := getText()
@@ -134,7 +129,7 @@ func testClientPublishHTTP(t *testing.T) {
 	}
 
 	mock.ExpectExec("INSERT INTO chat_message").WithArgs("tester", sentence, "portal").WillReturnResult(sqlmock.NewResult(1, 1))
-	req, err := http.NewRequest("POST", "http://localhost:8090/chat/postmessage", bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", "http://localhost:8091/chat/postmessage", bytes.NewBuffer(payload))
 	if err != nil {
 		t.Error(err)
 	}
@@ -149,5 +144,116 @@ func testClientPublishHTTP(t *testing.T) {
 
 	}
 	resp.Body.Close()
+	chatServer.GWServer.Close()
+}
+
+func TestIntegration(t *testing.T) {
+	// only run in integration env
+	if os.Getenv("TEST_INTEGRATION") != "true" {
+		t.Skip("Skipping integration tests")
+	}
+	t.Run("test-grpc-client", testMessagePublishGRPCEndToEnd)
+	// post to server via http
+	t.Run("test-http-client", testMessagePublishHTTPEndToEnd)
+
+}
+func testMessagePublishGRPCEndToEnd(t *testing.T) {
+	db := postgres.ConnectDB()
+	ctx, conn := setupContextAndConnection(t)
+
+	// configure grpcServer
+	chatServer := SetupGrpc(db)
+	err := chatServer.RunGrpc(ctx, "9090")
+	if err != nil {
+		t.Error(err)
+	}
+
+	// create testing client
+	client := chat.NewGatewayConnectorClient(conn)
+	rownum := rand.Intn(20)
+	for i := 0; i < rownum; i++ {
+		sentence := getText()
+
+		// create grpc message
+		msg := chat.ChatMessage{
+			UserName: "tester",
+			Text:     sentence,
+		}
+		// call function
+		_, err = client.SendChat(ctx, &msg)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+	row := db.Client.QueryRow(`SELECT COUNT(ID) FROM chat_message`)
+	var count int
+	err = row.Scan(&count)
+	if err != nil {
+		t.Error(err)
+	}
+	if count != rownum {
+		t.Errorf("db out of sync: expected row count: %d, actuial row count: %d", rownum, count)
+	}
+
+}
+
+func testMessagePublishHTTPEndToEnd(t *testing.T) {
+	db := postgres.ConnectDB()
+
+	ctx, _ := setupContextAndConnection(t)
+	// configure grpcServer
+
+	// wait to unbind address
+	chatServer := SetupGrpc(db)
+	err := chatServer.RunGrpc(ctx, "9091")
+	if err != nil {
+		// this is setup step
+		t.Fatalf("cannot setup grpc %v", err)
+	}
+
+	// Configure Gateway Server
+	chatServer.SetupGateway(ctx, "8091", "9091")
+	go chatServer.GWServer.ListenAndServe()
+	fmt.Println("GatewayServer is configured and running on port :8090")
+
+	rownum := rand.Intn(20)
+	for i := 0; i < rownum; i++ {
+		// generate random sentence
+		sentence := getText()
+		// create grpc message
+		msg := chat.ChatMessage{
+			UserName: "tester",
+			Text:     sentence,
+		}
+		payload, err := json.Marshal(msg)
+		if err != nil {
+			t.Error(err)
+		}
+
+		req, err := http.NewRequest("POST", "http://localhost:8091/chat/postmessage", bytes.NewBuffer(payload))
+		if err != nil {
+			t.Error(err)
+		}
+
+		httpClient := http.DefaultClient
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			t.Error(err)
+		}
+		if resp.StatusCode != 200 {
+			t.Errorf("status code not expected %d\n", resp.StatusCode)
+
+		}
+		resp.Body.Close()
+	}
+	row := db.Client.QueryRow(`SELECT COUNT(ID) FROM chat_message`)
+	var count int
+	err = row.Scan(&count)
+	if err != nil {
+		t.Error(err)
+	}
+	if count != rownum {
+		t.Errorf("db out of sync: expected row count: %d, actuial row count: %d", rownum, count)
+	}
 	chatServer.GWServer.Close()
 }
