@@ -9,3 +9,5 @@ plugins:
   - name: grpc-gateway
     out: protos
     opt: paths=source_relative
+  - name: openapiv2
+    out: protos/openapiv2

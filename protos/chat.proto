@@ -6,6 +6,19 @@ option go_package = "github.com/Soypete/Meetup-chat-server/protos/chat";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+	info: {
+		title: "Gateway Service";
+		version: "1.0";
+		contact: {
+			name: "soypete";
+			url: "httplocalhost:8090";
+			email: "noreply@gmail.com";
+		};
+	};
+};
 
 service GatewayConnector{
 	rpc SendChat (ChatMessage) returns (google.protobuf.Empty) {
@@ -13,12 +26,20 @@ service GatewayConnector{
 			post: "/chat/postmessage"
 			body: "*"	
 		};
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "post chat message";
+			description: "Use this endpoint to post a message to the server backend";
+		};
 	}
 	rpc GetChat(RetrieveChatMessages) returns (Chats){
 
     	option (google.api.http) = {
 			post: "/chat/getmessages"
 			body: "*"	
+		};
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "get chat messages";
+			description: "Use this endpoint to retrieve chat messages that have abeen sent to the since the last message was received";
 		};
 }
 }

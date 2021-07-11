@@ -9,6 +9,7 @@ version: v1beta1
 name: buf.build/soypete/meetup-chat-server
 deps:
   - buf.build/beta/googleapis
+  - buf.build/grpc-ecosystem/grpc-gateway
 build:
   roots:
     - protos
