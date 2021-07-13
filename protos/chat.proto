@@ -1,0 +1,69 @@
+syntax = "proto3";
+package chat; 
+
+option go_package = "github.com/Soypete/Meetup-chat-server/protos/chat";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+	info: {
+		title: "Gateway Service";
+		version: "1.0";
+		contact: {
+			name: "soypete";
+			url: "httplocalhost:8090";
+			email: "noreply@gmail.com";
+		};
+	};
+};
+
+service GatewayConnector{
+	rpc SendChat (ChatMessage) returns (google.protobuf.Empty) {
+    	option (google.api.http) = {
+			post: "/chat/postmessage"
+			body: "*"	
+		};
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "post chat message";
+			description: "Use this endpoint to post a message to the server backend";
+		};
+	}
+	rpc GetChat(RetrieveChatMessages) returns (Chats){
+
+    	option (google.api.http) = {
+			post: "/chat/getmessages"
+			body: "*"	
+		};
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "get chat messages";
+			description: "Use this endpoint to retrieve chat messages that have abeen sent to the since the last message was received";
+		};
+}
+}
+
+message RetrieveChatMessages{
+	google.protobuf.Timestamp timestamp_last_message = 1;
+	int32 last_message_id = 5;
+}
+
+message Chats{
+	repeated ChatMessage messages = 1;
+}
+message ChatMessage {
+	string user_name = 1;
+	google.protobuf.Timestamp timestamp = 2;
+	string text = 3;
+	int32 message_id = 4;
+	Source source = 5;
+}
+
+enum Source {
+	DEFAULT = 0;
+	ENDPOINT = 1;
+	TWITCH = 2;
+	DISCORD = 3;
+}
+
