@@ -32,6 +32,6 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: test script
-        run:  ./.github/scripts/test.sh
+        run:  sudo scripts/test.sh
         shell: bash
           
