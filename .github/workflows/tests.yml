@@ -31,10 +31,10 @@ jobs:
           go-version: 1.16
 
       - name: env
-        run: ls .github
+        run: chmod +x .github/scripts/test.sh
 
       # Runs a set of commands using the runners shell
       - name: test script
-        run:  sudo .github/scripts/test.sh
+        run:  .github/scripts/test.sh
         shell: bash
           
