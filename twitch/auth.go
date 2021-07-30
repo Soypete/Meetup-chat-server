@@ -11,33 +11,6 @@ import (
 	"golang.org/x/oauth2/twitch"
 )
 
-// func GetWebPage(url string) ([]byte, error) {
-// client := http.DefaultClient
-// check http.Client initialized
-// request, err := http.NewRequest("GET", url, nil)
-// if err != nil {
-// return nil, fmt.Errorf("Cannot create request %w", err)
-// }
-// request.AddCookie(&http.Cookie{
-// Name:  "name",
-// Value: "value",
-// })
-// request.Header.Set("Content-Type", "application/json")
-// resp, err := client.Do(request)
-// if err != nil {
-// return []byte{}, fmt.Errorf("failure in Do request:\n %w ---\n", err)
-// }
-// if resp.StatusCode != http.StatusOK {
-// return []byte{}, errors.New("not a 200 status code")
-// }
-// body, err := ioutil.ReadAll(resp.Body)
-// if err != nil {
-// return []byte{}, fmt.Errorf("Cannot parse response body: %w", err)
-// }
-// defer resp.Body.Close()
-// return body, nil
-// }
-
 func parseAuthCode(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
