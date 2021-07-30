@@ -1,4 +1,4 @@
-package twitchIRC
+package twitchirc
 
 import (
 	"context"
