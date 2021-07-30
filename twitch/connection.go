@@ -14,7 +14,7 @@ const peteTwitchChannel = "soypete01"
 // IRC Connection to the twitch IRC server.
 type IRC struct {
 	client *v2.Client
-	wg     *sync.WaitGroup
+	WG     *sync.WaitGroup
 	mutex  *sync.Mutex
 	tok    *oauth2.Token
 	// tokChan chan *oath2.token

@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/soypete/meetup-chat-server/postgres"
 	chat "github.com/soypete/meetup-chat-server/protos"
+	twitch "github.com/soypete/meetup-chat-server/twitch"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -17,14 +18,16 @@ import (
 // ChatServer is the struct upon which the grpc methods are implemented.
 type ChatServer struct {
 	chat.UnimplementedGatewayConnectorServer
-	GWServer *http.Server
-	database postgres.PG
+	GWServer     *http.Server
+	database     postgres.PG
+	twitchClient *twitch.IRC
 }
 
 // SetupGrpc created the grpc server for the chat messages.
-func SetupGrpc(db postgres.PG) *ChatServer {
+func SetupGrpc(db postgres.PG, tc *twitch.IRC) *ChatServer {
 	cs := ChatServer{
-		database: db,
+		database:     db,
+		twitchClient: tc,
 	}
 	return &cs
 }
@@ -82,6 +85,7 @@ func (c *ChatServer) SendChat(ctx context.Context, msg *chat.ChatMessage) (*empt
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to insert message to DB")
 	}
+	c.twitchClient.SendChat(msg)
 	// TODO: add user to db
 	return new(emptypb.Empty), nil
 }

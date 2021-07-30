@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/soypete/meetup-chat-server/postgres"
@@ -24,15 +25,19 @@ func main() {
 
 	// setup twitch IRC
 	irc := new(twitch.IRC)
-	err = irc.ConnectTwitch()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	wg := new(sync.WaitGroup)
+	irc.WG = wg
+	go func() {
+		err = irc.ConnectTwitch()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}()
 
 	// Configure gRPC server
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	chatServer := server.SetupGrpc(db)
+	chatServer := server.SetupGrpc(db, irc)
 
 	fmt.Println("gRPCServer is configured and listening on port :9090")
 

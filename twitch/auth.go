@@ -35,7 +35,7 @@ func (irc *IRC) ConnectTwitch() error {
 		Scopes:       []string{"chat:read", "chat:edit"},
 		RedirectURL:  "http://localhost:8081/oauth/redirect",
 		Endpoint:     twitch.Endpoint}
-	irc.wg.Add(1)
+	irc.WG.Add(1)
 	// Redirect user to consent page to ask for permission
 	// for the scopes specified above.
 	go func() error {
@@ -57,10 +57,10 @@ func (irc *IRC) ConnectTwitch() error {
 			return errors.Wrap(err, "failed to get token with auth code")
 		}
 		_ = conf.Client(ctx, irc.tok)
-		irc.wg.Done()
+		irc.WG.Done()
 		return nil
 	}()
-	irc.wg.Wait()
+	irc.WG.Wait()
 	err := irc.SetupIRC()
 	if err != nil {
 		return errors.Wrap(err, "failed to conenct over IRC")

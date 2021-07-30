@@ -14,6 +14,6 @@ we generate all the protos with buf
 
 ## to run 
 ```sh
-docker-compose up -d
+<gt!-- docker-compose up -d -->
 dev/run.sh
 ```
