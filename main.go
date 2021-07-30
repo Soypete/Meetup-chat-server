@@ -8,17 +8,27 @@ import (
 
 	"github.com/soypete/meetup-chat-server/postgres"
 	server "github.com/soypete/meetup-chat-server/server"
+	twitch "github.com/soypete/meetup-chat-server/twitch"
 )
 
 const grpcPort = "9090"
 const httpPort = "8090"
 
 func main() {
+	// setup Database
 	db := postgres.ConnectDB()
 	err := db.Migrate()
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	// setup twitch IRC
+	irc := new(twitch.IRC)
+	err = irc.ConnectTwitch()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	// Configure gRPC server
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

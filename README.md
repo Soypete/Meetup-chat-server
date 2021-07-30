@@ -13,4 +13,7 @@ Uses grpc, [grpc-gateway](https://grpc-ecosystem.github.io/grpc-gateway/), and [
 we generate all the protos with buf
 
 ## to run 
-docker-compose?
+```sh
+docker-compose up -d
+dev/run.sh
+```
