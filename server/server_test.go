@@ -87,7 +87,7 @@ func TestClientPublishGRPC(t *testing.T) {
 
 	// Mock db call
 	sentence := getText()
-	mock.ExpectExec("INSERT INTO chat_message").WithArgs("tester", sentence, "portal").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("INSERT INTO chat_message").WithArgs("tester", sentence, "DEFAULT").WillReturnResult(sqlmock.NewResult(1, 1))
 
 	// create grpc message
 	msg := chat.ChatMessage{
@@ -137,7 +137,7 @@ func TestClientPublishHTTP(t *testing.T) {
 		t.Error(err)
 	}
 
-	mock.ExpectExec("INSERT INTO chat_message").WithArgs("tester", sentence, "portal").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("INSERT INTO chat_message").WithArgs("tester", sentence, chat.Source_name[int32(chat.Source_DEFAULT)]).WillReturnResult(sqlmock.NewResult(1, 1))
 	req, err := http.NewRequest("POST", "http://localhost:8091/chat/postmessage", bytes.NewBuffer(payload))
 	if err != nil {
 		t.Error(err)

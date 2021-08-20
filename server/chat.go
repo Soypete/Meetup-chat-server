@@ -17,6 +17,7 @@ func (c *ChatServer) SendChat(ctx context.Context, msg *chat.ChatMessage) (*empt
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to insert message to DB")
 	}
+
 	// send message to twitch over IRC connection
 	err = c.twitchClient.SendChat(msg)
 	if err != nil {
