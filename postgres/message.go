@@ -20,7 +20,7 @@ func (pg *PG) InsertMessage(ctx context.Context, msg *chat.ChatMessage) error {
 			 values ($1, $2, $3)`
 
 	// TODO: add switch for source
-	results, err := pg.Client.Exec(query, msg.GetUserName(), msg.GetText(), portalMessage)
+	results, err := pg.Client.Exec(query, msg.GetUserName(), msg.GetText(), msg.GetSource().String())
 	if err != nil {
 		return errors.Wrap(err, "cannot add message to the db")
 	}

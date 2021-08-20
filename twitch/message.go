@@ -15,7 +15,7 @@ import (
 // This function currently uses the hard coded "soypete01" user and sents a
 // text message.
 func (irc *IRC) SendChat(msg *chat.ChatMessage) error {
-
+	fmt.Println(msg.GetText())
 	// TODO: add chat bot account and user name
 	irc.client.Say(peteTwitchChannel, msg.GetText())
 	return nil

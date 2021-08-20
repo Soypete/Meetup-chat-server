@@ -32,7 +32,7 @@ func (irc *IRC) ConnectTwitch() error {
 		// TODO: use const for the following.
 		ClientID:     os.Getenv("TWITCH_ID"),
 		ClientSecret: os.Getenv("TWITCH_SECRET"),
-		Scopes:       []string{"chat:read", "chat:edit"},
+		Scopes:       []string{"chat:read", "chat:edit", "channel:moderate"},
 		RedirectURL:  "http://localhost:8081/oauth/redirect",
 		Endpoint:     twitch.Endpoint}
 	irc.WG.Add(1)
