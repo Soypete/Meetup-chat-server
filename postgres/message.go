@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 	chat "github.com/soypete/meetup-chat-server/protos"
@@ -19,10 +20,11 @@ func (pg *PG) InsertMessage(ctx context.Context, msg *chat.ChatMessage) error {
 			 values ($1, $2, $3)`
 
 	// TODO: add switch for source
-	_, err := pg.Client.Exec(query, msg.GetUserName(), msg.GetText(), portalMessage)
+	results, err := pg.Client.Exec(query, msg.GetUserName(), msg.GetText(), portalMessage)
 	if err != nil {
 		return errors.Wrap(err, "cannot add message to the db")
 	}
+	fmt.Println(results)
 	return nil
 }
 

@@ -25,6 +25,7 @@ func main() {
 
 	// setup twitch IRC
 	irc := new(twitch.IRC)
+	irc.Database(db)
 	wg := new(sync.WaitGroup)
 	irc.WG = wg
 	go func() {
