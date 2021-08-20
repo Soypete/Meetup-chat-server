@@ -1,7 +1,6 @@
 package twitchirc
 
 import (
-	"fmt"
 	"sync"
 
 	v2 "github.com/gempir/go-twitch-irc/v2"
@@ -33,7 +32,9 @@ func (irc *IRC) SetupIRC() error {
 	c.Join(peteTwitchChannel)
 	c.OnConnect(func() { c.Say(peteTwitchChannel, "grpc twitch bot connected") })
 	// TODO: define function that stores message to db
-	c.OnPrivateMessage(func(msg v2.PrivateMessage) { fmt.Println(msg.Message) })
+	c.OnPrivateMessage(func(msg v2.PrivateMessage) {
+		irc.PersistChat(msg)
+	})
 	err := c.Connect()
 	if err != nil {
 		return errors.Wrap(err, "failed to connect over IRC")
