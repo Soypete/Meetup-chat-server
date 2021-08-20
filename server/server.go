@@ -18,11 +18,11 @@ type ChatServer struct {
 	chat.UnimplementedGatewayConnectorServer
 	GWServer     *http.Server
 	database     postgres.PG
-	twitchClient *twitch.IRC
+	twitchClient twitch.TwitchIRC
 }
 
 // SetupGrpc created the grpc server for the chat messages.
-func SetupGrpc(db postgres.PG, tc *twitch.IRC) *ChatServer {
+func SetupGrpc(db postgres.PG, tc twitch.TwitchIRC) *ChatServer {
 	cs := ChatServer{
 		database:     db,
 		twitchClient: tc,

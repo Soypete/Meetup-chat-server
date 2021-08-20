@@ -6,6 +6,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/gempir/go-twitch-irc/v2 v2.5.0
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/google/martian v2.1.0+incompatible
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.5.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.2

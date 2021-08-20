@@ -7,10 +7,17 @@ import (
 	v2 "github.com/gempir/go-twitch-irc/v2"
 	"github.com/pkg/errors"
 	"github.com/soypete/meetup-chat-server/postgres"
+	chat "github.com/soypete/meetup-chat-server/protos"
 	"golang.org/x/oauth2"
 )
 
 const peteTwitchChannel = "soypete01"
+
+// TwitchIRC is used to enforce the methods to interact with twith.
+type TwitchIRC interface {
+	SendChat(*chat.ChatMessage) error
+	PersistChat(v2.PrivateMessage)
+}
 
 // IRC Connection to the twitch IRC server.
 type IRC struct {
