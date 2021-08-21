@@ -21,9 +21,9 @@ func parseAuthCode(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprint(os.Stdout, code)
 }
 
-// ConnectTwitch use oauth2 protocol to retrieve oauth2 token for twitch IRC.
+// AuthTwitch use oauth2 protocol to retrieve oauth2 token for twitch IRC.
 // _NOTE_: this has not been tested on long standing projects.
-func (irc *IRC) ConnectTwitch() error {
+func (irc *IRC) AuthTwitch() error {
 	http.HandleFunc("/oauth/redirect", parseAuthCode)
 	go http.ListenAndServe("localhost:8081", nil)
 
@@ -35,7 +35,7 @@ func (irc *IRC) ConnectTwitch() error {
 		Scopes:       []string{"chat:read", "chat:edit", "channel:moderate"},
 		RedirectURL:  "http://localhost:8081/oauth/redirect",
 		Endpoint:     twitch.Endpoint}
-	irc.WG.Add(1)
+	irc.wg.Add(1)
 	// Redirect user to consent page to ask for permission
 	// for the scopes specified above.
 	go func() error {
@@ -57,11 +57,11 @@ func (irc *IRC) ConnectTwitch() error {
 			return errors.Wrap(err, "failed to get token with auth code")
 		}
 		_ = conf.Client(ctx, irc.tok)
-		irc.WG.Done()
+		irc.wg.Done()
 		return nil
 	}()
-	irc.WG.Wait()
-	err := irc.SetupIRC()
+	irc.wg.Wait()
+	err := irc.connectIRC()
 	if err != nil {
 		return errors.Wrap(err, "failed to conenct over IRC")
 	}

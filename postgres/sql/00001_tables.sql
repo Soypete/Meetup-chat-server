@@ -16,9 +16,6 @@ CREATE TABLE IF NOT EXISTS users (
 	);
 
 
-/* TODO: This index is broken. need something to force uniqueness
-CREATE INDEX IF NOT EXISTS index_users ON users (username, source); */
-
 -- +goose Down
 
 DROP TABLE IF EXISTS users;

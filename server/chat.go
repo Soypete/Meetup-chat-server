@@ -19,10 +19,7 @@ func (c *ChatServer) SendChat(ctx context.Context, msg *chat.ChatMessage) (*empt
 	}
 
 	// send message to twitch over IRC connection
-	err = c.twitchClient.SendChat(msg)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to send message to twitch")
-	}
+	c.twitchClient.SendChat(msg)
 	return new(emptypb.Empty), nil
 }
 
