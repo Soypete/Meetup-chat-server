@@ -24,16 +24,11 @@ func main() {
 	}
 
 	// setup twitch IRC
-	irc := new(twitch.IRC)
-	irc.Database = db
 	wg := new(sync.WaitGroup)
-	irc.WG = wg
-	go func() {
-		err = irc.ConnectTwitch()
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}()
+	irc, err := twitch.SetupTwitchIRC(db, wg)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	// Configure gRPC server
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -47,6 +42,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+
 	// Configure Gateway Server
 	chatServer.SetupGateway(ctx, httpPort, grpcPort)
 

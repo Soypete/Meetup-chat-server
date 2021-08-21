@@ -1,6 +1,7 @@
 package twitchirc
 
 import (
+	"fmt"
 	"sync"
 
 	v2 "github.com/gempir/go-twitch-irc/v2"
@@ -14,20 +15,42 @@ const peteTwitchChannel = "soypete01"
 
 // TwitchIRC is used to enforce the methods to interact with twith.
 type TwitchIRC interface {
-	SendChat(*chat.ChatMessage) error
+	SendChat(*chat.ChatMessage)
 	PersistChat(v2.PrivateMessage)
 }
 
 // IRC Connection to the twitch IRC server.
 type IRC struct {
-	Database postgres.PG
+	database postgres.PG
 	client   *v2.Client
-	WG       *sync.WaitGroup
+	wg       *sync.WaitGroup
 	tok      *oauth2.Token
 }
 
-// SetupIRC gets the auth and connects to the twitch IRC server for channel.
-func (irc *IRC) SetupIRC() error {
+// SetupTwitchIRC sets up the IRC, configures oauth, and inits connection functions.
+func SetupTwitchIRC(db postgres.PG, wg *sync.WaitGroup) (*IRC, error) {
+	irc := &IRC{
+		database: db,
+		wg:       wg,
+	}
+	wg.Add(1)
+	// TODO: fix go routine for clean shut down and
+	// validate non-blocking calls.
+	go func() error {
+		// TODO error handling? this should shut down...
+		err := irc.AuthTwitch()
+		if err != nil {
+			return fmt.Errorf("failed twitch auth: %w", err)
+		}
+		wg.Done()
+		return nil
+	}()
+	wg.Wait()
+	return irc, nil
+}
+
+// connectIRC gets the auth and connects to the twitch IRC server for channel.
+func (irc *IRC) connectIRC() error {
 	c := v2.NewClient(peteTwitchChannel, "oauth:"+irc.tok.AccessToken)
 	c.Join(peteTwitchChannel)
 	c.OnConnect(func() { c.Say(peteTwitchChannel, "grpc twitch bot connected") })

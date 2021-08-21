@@ -3,16 +3,22 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 	chat "github.com/soypete/meetup-chat-server/protos"
 )
 
-const (
-	portalMessage  = "portal" // the moderator portal
-	twitchMessage  = "twitch"
-	discordMessage = "discord"
-)
+func cleanText(message string) string {
+	message = strings.ReplaceAll(message, ";", "")
+	message = strings.ReplaceAll(message, "DROP", "")
+	message = strings.ReplaceAll(message, "SELECT", "")
+	message = strings.ReplaceAll(message, "CREATE", "")
+	message = strings.ReplaceAll(message, "ALTER", "")
+	message = strings.ReplaceAll(message, "INSERT", "")
+	message = strings.ReplaceAll(message, "INSERT", "")
+	return message
+}
 
 // InsertMessage add a single message to the "chat_message" database table.
 func (pg *PG) InsertMessage(ctx context.Context, msg *chat.ChatMessage) error {
@@ -20,7 +26,7 @@ func (pg *PG) InsertMessage(ctx context.Context, msg *chat.ChatMessage) error {
 			 values ($1, $2, $3)`
 
 	// TODO: add switch for source
-	results, err := pg.Client.Exec(query, msg.GetUserName(), msg.GetText(), msg.GetSource().String())
+	results, err := pg.Client.Exec(query, cleanText(msg.GetUserName()), cleanText(msg.GetText()), msg.GetSource().String())
 	if err != nil {
 		return errors.Wrap(err, "cannot add message to the db")
 	}

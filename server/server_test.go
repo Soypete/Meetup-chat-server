@@ -21,9 +21,7 @@ import (
 
 type testIRC struct{}
 
-func (t *testIRC) SendChat(msg *chat.ChatMessage) error {
-	return nil
-}
+func (t *testIRC) SendChat(msg *chat.ChatMessage) {}
 
 func (t *testIRC) PersistChat(msg v2.PrivateMessage) {}
 
