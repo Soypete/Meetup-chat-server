@@ -12,11 +12,18 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	v2 "github.com/gempir/go-twitch-irc/v2"
 	"github.com/jmoiron/sqlx"
 	"github.com/soypete/meetup-chat-server/postgres"
 	chat "github.com/soypete/meetup-chat-server/protos"
 	"google.golang.org/grpc"
 )
+
+type testIRC struct{}
+
+func (t *testIRC) SendChat(msg *chat.ChatMessage) {}
+
+func (t *testIRC) PersistChat(msg v2.PrivateMessage) {}
 
 // helper functions
 func getText() string {
@@ -67,7 +74,7 @@ func TestClientPublishGRPC(t *testing.T) {
 	ctx, conn := setupContextAndConnection(t)
 
 	// configure grpcServer
-	chatServer := SetupGrpc(pgClient)
+	chatServer := SetupGrpc(pgClient, &testIRC{})
 	err := chatServer.RunGrpc(ctx, "9090")
 	if err != nil {
 		t.Error(err)
@@ -78,7 +85,7 @@ func TestClientPublishGRPC(t *testing.T) {
 
 	// Mock db call
 	sentence := getText()
-	mock.ExpectExec("INSERT INTO chat_message").WithArgs("tester", sentence, "portal").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("INSERT INTO chat_message").WithArgs("tester", sentence, "DEFAULT").WillReturnResult(sqlmock.NewResult(1, 1))
 
 	// create grpc message
 	msg := chat.ChatMessage{
@@ -104,7 +111,7 @@ func TestClientPublishHTTP(t *testing.T) {
 	ctx, _ := setupContextAndConnection(t)
 
 	// configure grpcServer
-	chatServer := SetupGrpc(pgClient)
+	chatServer := SetupGrpc(pgClient, &testIRC{})
 	err := chatServer.RunGrpc(ctx, "9091")
 	if err != nil {
 		// this is setup step
@@ -128,7 +135,7 @@ func TestClientPublishHTTP(t *testing.T) {
 		t.Error(err)
 	}
 
-	mock.ExpectExec("INSERT INTO chat_message").WithArgs("tester", sentence, "portal").WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectExec("INSERT INTO chat_message").WithArgs("tester", sentence, chat.Source_name[int32(chat.Source_DEFAULT)]).WillReturnResult(sqlmock.NewResult(1, 1))
 	req, err := http.NewRequest("POST", "http://localhost:8091/chat/postmessage", bytes.NewBuffer(payload))
 	if err != nil {
 		t.Error(err)
@@ -162,7 +169,7 @@ func testMessagePublishGRPCEndToEnd(t *testing.T) {
 	ctx, conn := setupContextAndConnection(t)
 
 	// configure grpcServer
-	chatServer := SetupGrpc(db)
+	chatServer := SetupGrpc(db, &testIRC{})
 	err := chatServer.RunGrpc(ctx, "9090")
 	if err != nil {
 		t.Error(err)
@@ -204,7 +211,7 @@ func testMessagePublishHTTPEndToEnd(t *testing.T) {
 	// configure grpcServer
 
 	// wait to unbind address
-	chatServer := SetupGrpc(db)
+	chatServer := SetupGrpc(db, &testIRC{})
 	err := chatServer.RunGrpc(ctx, "9091")
 	if err != nil {
 		// this is setup step

@@ -1,68 +1,67 @@
-package main
+package twitchirc
 
 import (
-	"context"
 	"fmt"
-	"log"
-	"os"
 	"sync"
 
 	v2 "github.com/gempir/go-twitch-irc/v2"
+	"github.com/pkg/errors"
+	"github.com/soypete/meetup-chat-server/postgres"
+	chat "github.com/soypete/meetup-chat-server/protos"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/twitch"
 )
+
+const peteTwitchChannel = "soypete01"
+
+// TwitchIRC is used to enforce the methods to interact with twith.
+type TwitchIRC interface {
+	SendChat(*chat.ChatMessage)
+	PersistChat(v2.PrivateMessage)
+}
 
 // IRC Connection to the twitch IRC server.
 type IRC struct {
-	client *v2.Client
+	database postgres.PG
+	client   *v2.Client
+	wg       *sync.WaitGroup
+	tok      *oauth2.Token
 }
 
-func main() {
-	var tok *oauth2.Token
-	ctx := context.Background()
-	conf := &oauth2.Config{
-		ClientID: os.Getenv("TWITCH_ID"),
-		// ClientSecret: "TWITCH_SECRET",
-		Scopes:      []string{"chat:edit"},
-		RedirectURL: "http://localhost",
-		Endpoint:    twitch.Endpoint}
-
-	wg := new(sync.WaitGroup)
-	mutex := new(sync.Mutex)
-
+// SetupTwitchIRC sets up the IRC, configures oauth, and inits connection functions.
+func SetupTwitchIRC(db postgres.PG, wg *sync.WaitGroup) (*IRC, error) {
+	irc := &IRC{
+		database: db,
+		wg:       wg,
+	}
 	wg.Add(1)
-	// Redirect user to consent page to ask for permission
-	// for the scopes specified above.
-	go func() {
-		url := conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
-		fmt.Printf("Visit the URL for the auth dialog: %v", url)
-
-		// Use the authorization code that is pushed to the redirect
-		// URL. Exchange will do the handshake to retrieve the
-		// initial access token. The HTTP Client returned by
-		// conf.Client will refresh the token as necessary.
-		var code string
-		_, err := fmt.Scan(&code)
+	// TODO: fix go routine for clean shut down and
+	// validate non-blocking calls.
+	go func() error {
+		// TODO error handling? this should shut down...
+		err := irc.AuthTwitch()
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("failed twitch auth: %w", err)
 		}
-		mutex.Lock()
-		tok, err = conf.Exchange(ctx, code)
-		if err != nil {
-			log.Fatal(err)
-		}
-		_ = conf.Client(ctx, tok)
-		mutex.Unlock()
 		wg.Done()
+		return nil
 	}()
 	wg.Wait()
-	fmt.Println(tok.TokenType, tok.AccessToken)
-	c := v2.NewClient("soypete01", tok.AccessToken)
-	c.Join("soypete01")
+	return irc, nil
+}
+
+// connectIRC gets the auth and connects to the twitch IRC server for channel.
+func (irc *IRC) connectIRC() error {
+	c := v2.NewClient(peteTwitchChannel, "oauth:"+irc.tok.AccessToken)
+	c.Join(peteTwitchChannel)
+	c.OnConnect(func() { c.Say(peteTwitchChannel, "grpc twitch bot connected") })
+	// TODO: define function that stores message to db
+	c.OnPrivateMessage(func(msg v2.PrivateMessage) {
+		irc.PersistChat(msg)
+	})
 	err := c.Connect()
 	if err != nil {
-		panic(err)
+		return errors.Wrap(err, "failed to connect over IRC")
 	}
-	msgs, err := c.Userlist("soypete01")
-	fmt.Println(msgs, err)
+	irc.client = c
+	return nil
 }
