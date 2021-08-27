@@ -63,13 +63,6 @@ func (irc *IRC) connectIRC() error {
 			c.Say(peteTwitchChannel, msg)
 		default:
 		}
-		// if len(messages) < 1 {
-		// return
-		// }
-		// for _, msg := range messages {
-		// c.Say(peteTwitchChannel, msg)
-		// }
-		// messages = []string{}
 	})
 	err := c.Connect()
 	if err != nil {

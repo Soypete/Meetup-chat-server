@@ -17,7 +17,8 @@ var messages []string
 // This function currently uses the hard coded "soypete01" user and sents a
 // text message.
 func (irc *IRC) AppendChat(msg *chat.ChatMessage) {
-	messages = append(messages, msg.GetText())
+	twitchMsg := fmt.Sprintf("%s: %s %s", msg.GetUsername(), msg.GetText(), msg.GetTimestamp())
+	irc.msgQueue <- twitchMsg
 }
 
 // PresistChat is used to handle PrivateMessages received from twitch IRC.
