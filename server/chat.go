@@ -12,6 +12,7 @@ import (
 // SendChat is called by the client to send a chat message to the server. The message is then
 // stored in the database.
 func (c *ChatServer) SendChat(ctx context.Context, msg *chat.ChatMessage) (*emptypb.Empty, error) {
+	fmt.Println("chat recieved")
 	// TODO: add user to db
 	err := c.database.InsertMessage(ctx, msg)
 	if err != nil {
@@ -19,7 +20,7 @@ func (c *ChatServer) SendChat(ctx context.Context, msg *chat.ChatMessage) (*empt
 	}
 
 	// send message to twitch over IRC connection
-	c.twitchClient.SendChat(msg)
+	c.twitchClient.AppendChat(msg)
 	return new(emptypb.Empty), nil
 }
 

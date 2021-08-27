@@ -38,7 +38,7 @@ func main() {
 	fmt.Println("gRPCServer is configured and listening on port :9090")
 
 	// TODO: clean shutdown - read about this
-	err = chatServer.RunGrpc(ctx, grpcPort)
+	err = chatServer.RunGrpc(ctx, grpcPort, wg)
 	if err != nil {
 		log.Fatalln(err)
 	}

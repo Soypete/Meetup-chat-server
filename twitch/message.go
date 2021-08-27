@@ -10,12 +10,14 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// SendChat sends a message to the twitch chat through the IRC connection.
+// TODO: use channels cause they fit the use case better
+var messages []string
+
+// AppendChat sends a message to the twitch chat through the IRC connection.
 // This function currently uses the hard coded "soypete01" user and sents a
 // text message.
-func (irc *IRC) SendChat(msg *chat.ChatMessage) {
-	// TODO: add chat bot account and user name
-	irc.client.Say(peteTwitchChannel, msg.GetText())
+func (irc *IRC) AppendChat(msg *chat.ChatMessage) {
+	messages = append(messages, msg.GetText())
 }
 
 // PresistChat is used to handle PrivateMessages received from twitch IRC.

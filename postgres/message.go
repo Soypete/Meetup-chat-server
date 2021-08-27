@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -26,11 +25,10 @@ func (pg *PG) InsertMessage(ctx context.Context, msg *chat.ChatMessage) error {
 			 values ($1, $2, $3)`
 
 	// TODO: add switch for source
-	results, err := pg.Client.Exec(query, cleanText(msg.GetUserName()), cleanText(msg.GetText()), msg.GetSource().String())
+	_, err := pg.Client.Exec(query, cleanText(msg.GetUserName()), cleanText(msg.GetText()), msg.GetSource().String())
 	if err != nil {
 		return errors.Wrap(err, "cannot add message to the db")
 	}
-	fmt.Println(results)
 	return nil
 }
 
