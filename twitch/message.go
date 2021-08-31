@@ -4,20 +4,18 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	v2 "github.com/gempir/go-twitch-irc/v2"
 	chat "github.com/soypete/meetup-chat-server/protos"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// TODO: use channels cause they fit the use case better
-var messages []string
-
 // AppendChat sends a message to the twitch chat through the IRC connection.
 // This function currently uses the hard coded "soypete01" user and sents a
 // text message.
 func (irc *IRC) AppendChat(msg *chat.ChatMessage) {
-	twitchMsg := fmt.Sprintf("%s: %s %s", msg.GetUsername(), msg.GetText(), msg.GetTimestamp())
+	twitchMsg := fmt.Sprintf("%s: %s %s", msg.GetUserName(), msg.GetText(), msg.GetTimestamp().AsTime().Format(time.Kitchen))
 	irc.msgQueue <- twitchMsg
 }
 

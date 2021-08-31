@@ -58,6 +58,7 @@ func (irc *IRC) connectIRC() error {
 	// TODO: define function that stores message to db
 	c.OnPrivateMessage(func(msg v2.PrivateMessage) {
 		irc.PersistChat(msg)
+		fmt.Println(len(irc.msgQueue))
 		select {
 		case msg := <-irc.msgQueue:
 			c.Say(peteTwitchChannel, msg)
