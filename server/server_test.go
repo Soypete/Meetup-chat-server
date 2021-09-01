@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -21,7 +22,7 @@ import (
 
 type testIRC struct{}
 
-func (t *testIRC) SendChat(msg *chat.ChatMessage) {}
+func (t *testIRC) AppendChat(msg *chat.ChatMessage) {}
 
 func (t *testIRC) PersistChat(msg v2.PrivateMessage) {}
 
@@ -75,7 +76,7 @@ func TestClientPublishGRPC(t *testing.T) {
 
 	// configure grpcServer
 	chatServer := SetupGrpc(pgClient, &testIRC{})
-	err := chatServer.RunGrpc(ctx, "9090")
+	err := chatServer.RunGrpc(ctx, "9090", &sync.WaitGroup{})
 	if err != nil {
 		t.Error(err)
 	}
@@ -112,7 +113,7 @@ func TestClientPublishHTTP(t *testing.T) {
 
 	// configure grpcServer
 	chatServer := SetupGrpc(pgClient, &testIRC{})
-	err := chatServer.RunGrpc(ctx, "9091")
+	err := chatServer.RunGrpc(ctx, "9091", &sync.WaitGroup{})
 	if err != nil {
 		// this is setup step
 		t.Fatalf("cannot setup grpc %v", err)
@@ -170,7 +171,7 @@ func testMessagePublishGRPCEndToEnd(t *testing.T) {
 
 	// configure grpcServer
 	chatServer := SetupGrpc(db, &testIRC{})
-	err := chatServer.RunGrpc(ctx, "9090")
+	err := chatServer.RunGrpc(ctx, "9090", &sync.WaitGroup{})
 	if err != nil {
 		t.Error(err)
 	}
@@ -212,7 +213,7 @@ func testMessagePublishHTTPEndToEnd(t *testing.T) {
 
 	// wait to unbind address
 	chatServer := SetupGrpc(db, &testIRC{})
-	err := chatServer.RunGrpc(ctx, "9091")
+	err := chatServer.RunGrpc(ctx, "9091", &sync.WaitGroup{})
 	if err != nil {
 		// this is setup step
 		t.Fatalf("cannot setup grpc %v", err)

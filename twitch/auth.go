@@ -60,7 +60,6 @@ func (irc *IRC) AuthTwitch() error {
 		irc.wg.Done()
 		return nil
 	}()
-	irc.wg.Wait()
 	err := irc.connectIRC()
 	if err != nil {
 		return errors.Wrap(err, "failed to conenct over IRC")

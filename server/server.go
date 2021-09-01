@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"sync"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pkg/errors"
@@ -57,7 +58,7 @@ func (cs *ChatServer) SetupGateway(ctx context.Context, port string, grpcPort st
 }
 
 // RunGrpc administer the server used to handle chat messages.
-func (cs *ChatServer) RunGrpc(ctx context.Context, port string) error {
+func (cs *ChatServer) RunGrpc(ctx context.Context, port string, wg *sync.WaitGroup) error {
 	lis, err := net.Listen("tcp", "localhost:"+port)
 	if err != nil {
 		return errors.Wrap(err, "cannot setup tcp connection: %w")
@@ -66,12 +67,17 @@ func (cs *ChatServer) RunGrpc(ctx context.Context, port string) error {
 	grpcServer := grpc.NewServer()
 	chat.RegisterGatewayConnectorServer(grpcServer, cs)
 
+	wg.Add(1)
 	go func() error {
-		err := grpcServer.Serve(lis)
+		defer wg.Done()
+		err = grpcServer.Serve(lis)
 		if err != nil {
 			return errors.Wrap(err, "grpc server failure: %w")
 		}
 		return nil
 	}()
+	if err != nil {
+		return err
+	}
 	return nil
 }
