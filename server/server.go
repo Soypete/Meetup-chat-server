@@ -68,13 +68,16 @@ func (cs *ChatServer) RunGrpc(ctx context.Context, port string, wg *sync.WaitGro
 	chat.RegisterGatewayConnectorServer(grpcServer, cs)
 
 	wg.Add(1)
-	defer wg.Done()
 	go func() error {
-		err := grpcServer.Serve(lis)
+		defer wg.Done()
+		err = grpcServer.Serve(lis)
 		if err != nil {
 			return errors.Wrap(err, "grpc server failure: %w")
 		}
 		return nil
 	}()
+	if err != nil {
+		return err
+	}
 	return nil
 }

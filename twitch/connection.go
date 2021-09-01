@@ -35,18 +35,22 @@ func SetupTwitchIRC(db postgres.PG, wg *sync.WaitGroup) (*IRC, error) {
 		wg:       wg,
 		msgQueue: make(chan string),
 	}
+	var err error
 	wg.Add(1)
-	defer wg.Done()
 	// TODO: fix go routine for clean shut down and
 	// validate non-blocking calls.
 	go func() error {
+		defer wg.Done()
 		// TODO error handling? this should shut down...
-		err := irc.AuthTwitch()
+		err = irc.AuthTwitch()
 		if err != nil {
 			return fmt.Errorf("failed twitch auth: %w", err)
 		}
 		return nil
 	}()
+	if err != nil {
+		return nil, err
+	}
 	return irc, nil
 }
 
@@ -58,11 +62,9 @@ func (irc *IRC) connectIRC() error {
 	// TODO: define function that stores message to db
 	c.OnPrivateMessage(func(msg v2.PrivateMessage) {
 		irc.PersistChat(msg)
-		fmt.Println(len(irc.msgQueue))
-		select {
-		case msg := <-irc.msgQueue:
+		for msg := range irc.msgQueue {
 			c.Say(peteTwitchChannel, msg)
-		default:
+
 		}
 	})
 	err := c.Connect()
