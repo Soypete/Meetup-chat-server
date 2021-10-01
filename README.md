@@ -8,12 +8,12 @@ Uses grpc, [grpc-gateway](https://grpc-ecosystem.github.io/grpc-gateway/), and [
 [twitch IRC](https://dev.twitch.tv/docs/irc)
 [twitch IRC go package](https://pkg.go.dev/github.com/gempir/go-twitch-irc/v2)
 [twitch auth](https://github.com/golang/oauth2)
+[discord go](https://github.com/bwmarrin/discordgo)
 
 ## build
 we generate all the protos with buf
 
 ## to run 
 ```sh
-<gt!-- docker-compose up -d -->
 dev/run.sh
 ```
