@@ -45,7 +45,6 @@ func main() {
 
 	// Configure Gateway Server
 	chatServer.SetupGateway(ctx, httpPort, grpcPort)
-
 	fmt.Println("GatewayServer is configured and running on port :8090")
 	err = chatServer.GWServer.ListenAndServe()
 	if err != nil {

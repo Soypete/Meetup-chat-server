@@ -34,14 +34,18 @@ func (irc *IRC) AuthTwitch() error {
 		ClientSecret: os.Getenv("TWITCH_SECRET"),
 		Scopes:       []string{"chat:read", "chat:edit", "channel:moderate"},
 		RedirectURL:  "http://localhost:8081/oauth/redirect",
-		Endpoint:     twitch.Endpoint}
+		Endpoint:     twitch.Endpoint,
+	}
+	// TODO: fix error handling with channels?
 	irc.wg.Add(1)
+
 	// Redirect user to consent page to ask for permission
 	// for the scopes specified above.
 	go func() error {
 		url := conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
 		fmt.Printf("Visit the URL for the auth dialog: %v\n", url)
 
+		irc.wg.Done()
 		// Use the authorization code that is pushed to the redirect
 		// URL. Exchange will do the handshake to retrieve the
 		// initial access token. The HTTP Client returned by
@@ -57,12 +61,15 @@ func (irc *IRC) AuthTwitch() error {
 			return errors.Wrap(err, "failed to get token with auth code")
 		}
 		_ = conf.Client(ctx, irc.tok)
-		irc.wg.Done()
 		return nil
 	}()
-	err := irc.connectIRC()
-	if err != nil {
-		return errors.Wrap(err, "failed to conenct over IRC")
+	switch {
+	case irc.tok != nil:
+		err := irc.connectIRC()
+		if err != nil {
+			return errors.Wrap(err, "failed to connect over IRC")
+		}
 	}
+	fmt.Println("connection completed")
 	return nil
 }

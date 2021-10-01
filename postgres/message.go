@@ -24,7 +24,6 @@ func (pg *PG) InsertMessage(ctx context.Context, msg *chat.ChatMessage) error {
 	query := `INSERT INTO chat_message (username, message_body, source)
 			 values ($1, $2, $3)`
 
-	// TODO: add switch for source
 	_, err := pg.Client.Exec(query, cleanText(msg.GetUserName()), cleanText(msg.GetText()), msg.GetSource().String())
 	if err != nil {
 		return errors.Wrap(err, "cannot add message to the db")

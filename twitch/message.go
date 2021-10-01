@@ -16,7 +16,7 @@ import (
 // text message.
 func (irc *IRC) AppendChat(msg *chat.ChatMessage) {
 	twitchMsg := fmt.Sprintf("%s: %s %s", msg.GetUserName(), msg.GetText(), msg.GetTimestamp().AsTime().Format(time.Kitchen))
-	irc.msgQueue <- twitchMsg
+	go func() { irc.msgQueue <- twitchMsg }()
 }
 
 // PresistChat is used to handle PrivateMessages received from twitch IRC.
@@ -30,6 +30,7 @@ func (irc *IRC) PersistChat(msg v2.PrivateMessage) {
 		Timestamp: timestamppb.New(msg.Time),
 		Source:    chat.Source_TWITCH,
 	}
+	fmt.Println(insertMessage)
 	// FIXME: Should we add context to the IRC
 	err := irc.database.InsertMessage(context.Background(), insertMessage)
 	if err != nil {
