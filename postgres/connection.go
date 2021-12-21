@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"fmt"
 	"log"
 
 	_ "github.com/lib/pq"
@@ -17,7 +18,8 @@ func ConnectDB() PG {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
+	// sanity check
+	fmt.Println(db.Ping())
 	return PG{
 		Client: db,
 	}

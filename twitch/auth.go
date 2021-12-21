@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/twitch"
 )
@@ -34,11 +33,15 @@ func (irc *IRC) AuthTwitch() error {
 		ClientSecret: os.Getenv("TWITCH_SECRET"),
 		Scopes:       []string{"chat:read", "chat:edit", "channel:moderate"},
 		RedirectURL:  "http://localhost:8081/oauth/redirect",
-		Endpoint:     twitch.Endpoint}
+		Endpoint:     twitch.Endpoint,
+	}
+	// TODO: fix error handling with channels?
 	irc.wg.Add(1)
+
 	// Redirect user to consent page to ask for permission
 	// for the scopes specified above.
-	go func() error {
+	go func() {
+		defer irc.wg.Done()
 		url := conf.AuthCodeURL("state", oauth2.AccessTypeOffline)
 		fmt.Printf("Visit the URL for the auth dialog: %v\n", url)
 
@@ -49,20 +52,21 @@ func (irc *IRC) AuthTwitch() error {
 		var code string
 		_, err := fmt.Scan(&code)
 		if err != nil {
-			return errors.Wrap(err, "cannot get input from standard in")
+			fmt.Println(fmt.Errorf("cannot get input from standard in: %w", err))
 		}
 
 		irc.tok, err = conf.Exchange(ctx, code)
 		if err != nil {
-			return errors.Wrap(err, "failed to get token with auth code")
+			fmt.Println(fmt.Errorf("failed to get token with auth code: %w", err))
 		}
 		_ = conf.Client(ctx, irc.tok)
-		irc.wg.Done()
-		return nil
+		// is this overkill?
+		fmt.Println("start twitch connection")
+		err = irc.connectIRC()
+		if err != nil {
+			fmt.Println(fmt.Errorf("failed to connect over IRC: %w", err))
+		}
+		fmt.Println("connection completed")
 	}()
-	err := irc.connectIRC()
-	if err != nil {
-		return errors.Wrap(err, "failed to conenct over IRC")
-	}
 	return nil
 }
